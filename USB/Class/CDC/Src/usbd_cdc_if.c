@@ -32,6 +32,11 @@
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
+volatile uint8_t read_to_idle_enabled = 0;
+volatile uint16_t rxIndex = 0;
+volatile uint16_t rxMaxSize = 0;
+uint8_t* pRX = 0;
+
 /* USER CODE END PV */
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
@@ -267,7 +272,37 @@ static int8_t CDC_Control(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 static int8_t CDC_Receive(uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
+#ifdef USE_USBD_COMPOSITE
+  USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0, CDC_InstID);
+#else
+  USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
+#endif
+
+  uint16_t len = (uint16_t) *Len; // Get length
+  uint16_t tempHeadPos = rxIndex;
+
+
+  if(read_to_idle_enabled == 1)
+  {
+	  // Restart timer when data is received
+	  HAL_TIM_Base_Stop_IT(&htim12);
+    __HAL_TIM_SET_COUNTER(&htim12, 0); // Reset the timer counter
+
+	  if(pRX){
+		  for (uint32_t i = 0; i < len; i++) {
+			pRX[tempHeadPos] = Buf[i];
+		  	tempHeadPos = (uint16_t)((uint16_t)(tempHeadPos + 1) % rxMaxSize);
+
+		    if (tempHeadPos == rxIndex) {
+		      return USBD_FAIL;
+		    }
+		  }
+	  }
+	  rxIndex = tempHeadPos;
+	  //printf("start idle timer\r\n");
+	  HAL_TIM_Base_Start_IT(&htim12);
+  }
+
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   return (USBD_OK);
   /* USER CODE END 6 */
@@ -319,15 +354,55 @@ static int8_t CDC_TransmitCplt(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
 {
   uint8_t result = USBD_OK;
   /* USER CODE BEGIN 13 */
-  UNUSED(Buf);
-  UNUSED(Len);
-  UNUSED(epnum);
+  result = CDC_TransmitCplt_Callback(Buf, Len, epnum);
   /* USER CODE END 13 */
   return result;
 }
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
 
+void CDC_FlushRxBuffer() {
+
+}
+
+void CDC_ReceiveToIdle(uint8_t* Buf, uint16_t max_size)
+{
+    rxIndex = 0;
+    rxMaxSize = max_size;
+    pRX = Buf;
+	read_to_idle_enabled = 1;
+}
+
+
+void CDC_Idle_Timer_Handler()
+{
+	read_to_idle_enabled = 0;
+	HAL_TIM_Base_Stop_IT(&htim12);
+
+	if(pRX){
+		// printf("CDC_handle_RxCpltCallback %d \r\n", rxIndex);
+		CDC_ReceiveCplt_Callback(rxIndex);
+	}else{
+		printf("RX EMPTY\r\n");
+		CDC_ReceiveCplt_Callback(0);
+	}
+
+    rxMaxSize = 0;
+    pRX = 0;
+}
+
+__weak int8_t CDC_TransmitCplt_Callback(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
+{
+	UNUSED(Buf);
+	UNUSED(Len);
+	UNUSED(epnum);
+	return USBD_OK;
+}
+
+__weak void CDC_ReceiveCplt_Callback(uint16_t Len)
+{
+	UNUSED(Len);
+}
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */
 
 /**

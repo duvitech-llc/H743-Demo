@@ -106,7 +106,12 @@ extern USBD_CDC_ItfTypeDef USBD_Interface_fops;
   * @{
   */
 
-uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
+uint8_t CDC_Transmit(uint8_t* Buf, uint16_t Len);
+int8_t CDC_TransmitCplt_Callback(uint8_t *Buf, uint32_t *Len, uint8_t epnum);
+void CDC_ReceiveCplt_Callback(uint16_t Len);
+void CDC_ReceiveToIdle(uint8_t* Buf, uint16_t max_size);
+void CDC_FlushRxBuffer();
+void CDC_Idle_Timer_Handler();
 
 /* USER CODE BEGIN EXPORTED_FUNCTIONS */
 

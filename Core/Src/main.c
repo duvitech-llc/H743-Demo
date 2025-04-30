@@ -25,6 +25,8 @@
 #include "crosslink.h"
 #include "ICM20948.h"
 #include "usb_device.h"
+#include "uart_comms.h"
+#include "usbd_cdc_if.h"
 
 #include <stdio.h>
 
@@ -193,12 +195,14 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  comms_host_start();
   while (1)
   {
 
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	comms_host_check_received(); // check comms
 	HAL_Delay(250);
 	BSP_LED_Toggle(LED_BLUE);
   }
@@ -539,6 +543,11 @@ void MPU_Config(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
+
+  if (htim->Instance == TIM12)
+  {
+	CDC_Idle_Timer_Handler();
+  }
 
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM15)
