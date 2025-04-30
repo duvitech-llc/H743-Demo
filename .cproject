@@ -55,6 +55,8 @@
 									<listOptionValue builtIn="false" value="../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy"/>
 									<listOptionValue builtIn="false" value="../USB/Core/Inc"/>
 									<listOptionValue builtIn="false" value="../USB/Class/CDC/Inc"/>
+									<listOptionValue builtIn="false" value="../USB/Class/IMU/Inc"/>
+									<listOptionValue builtIn="false" value="../USB/Class/HISTO/Inc"/>
 									<listOptionValue builtIn="false" value="../USB/Class/CompositeBuilder/Inc"/>
 									<listOptionValue builtIn="false" value="../Drivers/BSP/STM32H7xx_Nucleo"/>
 									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32H7xx/Include"/>
@@ -86,8 +88,8 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
-						<entry excluding="Class/CDC/Src/usbd_cdc_if_template.c|Core/Src/usbd_desc_template.c|Core/Src/usbd_conf_template.c|Class/VIDEO|Class/Template|Class/Printer|Class/MTP|Class/MSC|Class/HID|Class/DFU|Class/CustomHID|Class/CDC_RNDIS|Class/CDC_ECM|Class/CCID|Class/BillBoard|Class/AUDIO" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="USB"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
+						<entry excluding="Class/CDC/Src/usbd_cdc_if_template.c|Core/Src/usbd_desc_template.c|Core/Src/usbd_conf_template.c|Class/VIDEO|Class/Template|Class/Printer|Class/MTP|Class/MSC|Class/HID|Class/DFU|Class/CustomHID|Class/CDC_RNDIS|Class/CDC_ECM|Class/CCID|Class/BillBoard|Class/AUDIO" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="USB"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -174,8 +176,8 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
-						<entry excluding="Class/CDC/Src/usbd_cdc_if_template.c|Core/Src/usbd_desc_template.c|Core/Src/usbd_conf_template.c|Class/VIDEO|Class/Template|Class/Printer|Class/MTP|Class/MSC|Class/HID|Class/DFU|Class/CustomHID|Class/CDC_RNDIS|Class/CDC_ECM|Class/CCID|Class/BillBoard|Class/AUDIO" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="USB"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
+						<entry excluding="Class/CDC/Src/usbd_cdc_if_template.c|Core/Src/usbd_desc_template.c|Core/Src/usbd_conf_template.c|Class/VIDEO|Class/Template|Class/Printer|Class/MTP|Class/MSC|Class/HID|Class/DFU|Class/CustomHID|Class/CDC_RNDIS|Class/CDC_ECM|Class/CCID|Class/BillBoard|Class/AUDIO" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="USB"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
