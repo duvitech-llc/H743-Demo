@@ -39,9 +39,9 @@ extern "C" {
 /** @defgroup USBD_IMU_Exported_Defines
   * @{
   */
-#ifndef IMU_EPIN_ADDR
-#define IMU_EPIN_ADDR                  0x81U  /* EP1 IN (adjust based on your endpoint allocation) */
-#endif /* IMU_EPIN_ADDR */
+#ifndef IMU_IN_EP
+#define IMU_IN_EP                  0x81U  /* EP1 IN (adjust based on your endpoint allocation) */
+#endif /* IMU_IN_EP */
 
 /* Packet sizes - adjust based on your needs */
 #define IMU_FS_MAX_PACKET_SIZE         64U    /* Full-speed USB */

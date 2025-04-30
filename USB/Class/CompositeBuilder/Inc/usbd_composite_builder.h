@@ -39,6 +39,10 @@ extern "C" {
 #include "usbd_cdc.h"
 #endif /* USBD_CMPSIT_ACTIVATE_CDC */
 
+#if USBD_CMPSIT_ACTIVATE_IMU == 1U
+#include "usbd_imu.h"
+#endif /* USBD_CMPSIT_ACTIVATE_IMU */
+
 #if USBD_CMPSIT_ACTIVATE_DFU == 1U
 #include "usbd_dfu.h"
 #endif /* USBD_CMPSIT_ACTIVATE_DFU */
@@ -97,6 +101,10 @@ extern "C" {
 #ifndef USBD_CMPSIT_ACTIVATE_CDC
 #define USBD_CMPSIT_ACTIVATE_CDC                           0U
 #endif /* USBD_CMPSIT_ACTIVATE_CDC */
+
+#ifndef USBD_CMPSIT_ACTIVATE_IMU
+#define USBD_CMPSIT_ACTIVATE_IMU                           0U
+#endif /* USBD_CMPSIT_ACTIVATE_IMU */
 
 #ifndef USBD_CMPSIT_ACTIVATE_CDC_ECM
 #define USBD_CMPSIT_ACTIVATE_CDC_ECM                       0U

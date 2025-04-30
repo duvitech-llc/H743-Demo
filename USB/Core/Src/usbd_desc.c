@@ -65,13 +65,13 @@
 #define USBD_VID     					0x0483
 #define USBD_PID	     				0x5750
 #define USBD_LANGID_STRING     			0x409
-#define USBD_MANUFACTURER_STRING     	"STMicroelectronics"
-#define USBD_PRODUCT_STRING_HS          "Composite_CDC(HS)"
-#define USBD_PRODUCT_STRING_FS     		"Composite_CDC(FS)"
-#define USBD_CONFIGURATION_STRING_FS    "CDC Config"
-#define USBD_CONFIGURATION_STRING_HS    "CDC Config"
-#define USBD_INTERFACE_STRING_FS   		"CDC Interface"
-#define USBD_INTERFACE_STRING_HS   		"CDC Interface"
+#define USBD_MANUFACTURER_STRING     	"Openwater"
+#define USBD_PRODUCT_STRING_HS          "Composite_CDC_HID(HS)"
+#define USBD_PRODUCT_STRING_FS     		"Composite_CDC_HID(FS)"
+#define USBD_CONFIGURATION_STRING_FS    "CDC_HID Config"
+#define USBD_CONFIGURATION_STRING_HS    "CDC_HID Config"
+#define USBD_INTERFACE_STRING_FS   		"CDC_HID Interface"
+#define USBD_INTERFACE_STRING_HS   		"CDC_HID Interface"
 
 #define USB_SIZ_BOS_DESC            0x0C
 

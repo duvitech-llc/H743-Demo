@@ -330,6 +330,8 @@ typedef enum
   CLASS_TYPE_VIDEO   = 10,
   CLASS_TYPE_PRINTER = 11,
   CLASS_TYPE_CCID    = 12,
+  CLASS_TYPE_IMU	 = 13,
+  CLASS_TYPE_HISTO   = 14
 } USBD_CompositeClassTypeDef;
 
 

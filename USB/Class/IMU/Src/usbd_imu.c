@@ -115,7 +115,7 @@ __ALIGN_BEGIN static uint8_t USBD_IMU_CfgDesc[IMU_CONFIG_DESC_SIZ] __ALIGN_END =
   /* Endpoint Descriptor */
   0x07,                           /* bLength: Endpoint Descriptor size */
   USB_DESC_TYPE_ENDPOINT,         /* bDescriptorType: Endpoint */
-  IMU_EPIN_ADDR,                  /* bEndpointAddress: (IN) */
+  IMU_IN_EP,                  /* bEndpointAddress: (IN) */
   0x02,                           /* bmAttributes: Bulk */
   IMU_FS_MAX_PACKET_SIZE,         /* wMaxPacketSize: */
   0x00,
@@ -123,7 +123,7 @@ __ALIGN_BEGIN static uint8_t USBD_IMU_CfgDesc[IMU_CONFIG_DESC_SIZ] __ALIGN_END =
 };
 #endif /* USE_USBD_COMPOSITE */
 
-static uint8_t IMUInEpAdd = IMU_EPIN_ADDR;
+static uint8_t IMUInEpAdd = IMU_IN_EP;
 
 /**
   * @}
