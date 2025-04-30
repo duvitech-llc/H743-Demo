@@ -18,13 +18,13 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "logging.h"
 #include "crosslink.h"
 #include "ICM20948.h"
+#include "usb_device.h"
 
 #include <stdio.h>
 
@@ -56,6 +56,7 @@ TIM_HandleTypeDef htim12;
 UART_HandleTypeDef huart3;
 DMA_HandleTypeDef hdma_usart3_rx;
 DMA_HandleTypeDef hdma_usart3_tx;
+
 
 /* USER CODE BEGIN PV */
 __attribute__((section(".RAM_D1"))) uint8_t bitstream_buffer[MAX_BITSTREAM_SIZE]; // 160KB buffer
@@ -150,7 +151,6 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART3_UART_Init();
-  MX_USB_DEVICE_Init();
   MX_CRC_Init();
   MX_I2C1_Init();
   MX_TIM12_Init();
@@ -180,6 +180,8 @@ int main(void)
   {
     printf("IMU NOT detected\r\n\n");
   }
+
+  MX_USB_DEVICE_Init();
 
   /* USER CODE END 2 */
 
