@@ -71,7 +71,7 @@
 /*---------- -----------*/
 #define USBD_DEBUG_LEVEL     3U
 /*---------- -----------*/
-#define USBD_LPM_ENABLED     1U
+#define USBD_LPM_ENABLED     0U
 /*---------- -----------*/
 #define USBD_SELF_POWERED     1U
 
@@ -86,7 +86,7 @@
 #define CDC_FS_BINTERVAL                            	0x10U
 
 /* Define the number of maximum interfaces per class */
-#define USBD_MAX_CLASS_INTERFACES                      	2U
+#define USBD_MAX_CLASS_INTERFACES                      	1U
 
 #define CDC_IN_EP                                   	0x81U  /* EP1 for data IN */
 #define CDC_OUT_EP                                  	0x01U  /* EP1 for data OUT */
@@ -95,16 +95,16 @@
 #define USBD_COMPOSITE_USE_IAD							1U
 
 /* Activate the composite builder */
-//#define USE_USBD_COMPOSITE
+#define USE_USBD_COMPOSITE
 
 /* Activate CustomHID and CDC classes in composite builder */
 #define USBD_CMPSIT_ACTIVATE_CDC                    	1U
 
 /* Define the number of supported classes */
-#define USBD_MAX_SUPPORTED_CLASS                       	2U
+#define USBD_MAX_SUPPORTED_CLASS                       	1U
 
 /* Define the number of endpoints per class */
-#define USBD_MAX_CLASS_ENDPOINTS                       	3U
+#define USBD_MAX_CLASS_ENDPOINTS                       	2U
 
 /**
   * @}

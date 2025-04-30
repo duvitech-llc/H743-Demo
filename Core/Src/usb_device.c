@@ -25,6 +25,7 @@
 #include "usbd_desc.h"
 #include "usbd_cdc.h"
 #include "usbd_cdc_if.h"
+#include "usbd_composite_builder.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -32,6 +33,10 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+
+uint8_t CDC_EpAdd_Inst[3] = {CDC_IN_EP, CDC_OUT_EP}; 	/* CDC Endpoint Addresses array */
+
+uint8_t CDC_InstID = 0;
 
 /* USER CODE END PV */
 
@@ -72,14 +77,35 @@ void MX_USB_DEVICE_Init(void)
   {
     Error_Handler();
   }
+
+  /* Store the CDC Class */
+  CDC_InstID = hUsbDeviceFS.classId;
+
+  /* Register CDC Class First Instance */
+  if(USBD_RegisterClassComposite(&hUsbDeviceFS, USBD_CDC_CLASS, CLASS_TYPE_CDC, CDC_EpAdd_Inst) != USBD_OK)
+  {
+	Error_Handler();
+  }
+/* not using composite builder
   if (USBD_RegisterClass(&hUsbDeviceFS, &USBD_CDC) != USBD_OK)
   {
     Error_Handler();
   }
-  if (USBD_CDC_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_fops_FS) != USBD_OK)
+*/
+
+  /* Add CDC Interface Class */
+  if (USBD_CMPSIT_SetClassID(&hUsbDeviceFS, CLASS_TYPE_CDC, 0) != 0xFF)
+  {
+	USBD_CDC_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_fops);
+  }
+
+/* not using composite builder
+  if (USBD_CDC_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_fops) != USBD_OK)
   {
     Error_Handler();
   }
+*/
+
   if (USBD_Start(&hUsbDeviceFS) != USBD_OK)
   {
     Error_Handler();
