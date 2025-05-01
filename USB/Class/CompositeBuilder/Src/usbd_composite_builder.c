@@ -113,6 +113,10 @@ static void  USBD_CMPSIT_MSCDesc(USBD_HandleTypeDef *pdev, uint32_t pConf, __IO 
 static void  USBD_CMPSIT_CDCDesc(USBD_HandleTypeDef *pdev, uint32_t pConf, __IO uint32_t *Sze, uint8_t speed);
 #endif /* USBD_CMPSIT_ACTIVATE_CDC == 1U */
 
+#if USBD_CMPSIT_ACTIVATE_HISTO == 1U
+static void USBD_CMPSIT_HISTODesc(USBD_HandleTypeDef *pdev, uint32_t pConf, __IO uint32_t *Sze, uint8_t speed);
+#endif
+
 #if USBD_CMPSIT_ACTIVATE_IMU == 1U
 static void USBD_CMPSIT_IMUDesc(USBD_HandleTypeDef *pdev, uint32_t pConf, __IO uint32_t *Sze, uint8_t speed);
 #endif /* USBD_CMPSIT_ACTIVATE_IMU == 1U */
@@ -378,6 +382,32 @@ uint8_t  USBD_CMPSIT_AddToConfDesc(USBD_HandleTypeDef *pdev)
 
       break;
 #endif /* USBD_CMPSIT_ACTIVATE_CDC */
+
+#if USBD_CMPSIT_ACTIVATE_HISTO == 1
+    case CLASS_TYPE_HISTO:
+        /* Setup Max packet size for HISTO */
+        pdev->tclasslist[pdev->classId].CurrPcktSze = (pdev->dev_speed == USBD_SPEED_HIGH) ? HISTO_DATA_PACKET_SIZE : HISTO_DATA_PACKET_SIZE;
+
+        /* Find the first available interface slot */
+        idxIf = USBD_CMPSIT_FindFreeIFNbr(pdev);
+        pdev->tclasslist[pdev->classId].NumIf = 1U;
+        pdev->tclasslist[pdev->classId].Ifs[0] = idxIf;
+
+        /* Assign endpoint numbers - only need 1 IN endpoint */
+        pdev->tclasslist[pdev->classId].NumEps = 1U; /* EPx_IN */
+
+        /* Set IN endpoint slot */
+        iEp = pdev->tclasslist[pdev->classId].EpAdd[0];
+        USBD_CMPSIT_AssignEp(pdev, iEp, USBD_EP_TYPE_BULK, pdev->tclasslist[pdev->classId].CurrPcktSze);
+
+        /* Configure and Append the Descriptor */
+        USBD_CMPSIT_HISTODesc(pdev, (uint32_t)pCmpstFSConfDesc, &CurrFSConfDescSz, (uint8_t)USBD_SPEED_FULL);
+#ifdef USE_USB_HS
+        USBD_CMPSIT_HISTODesc(pdev, (uint32_t)pCmpstHSConfDesc, &CurrHSConfDescSz, (uint8_t)USBD_SPEED_HIGH);
+#endif /* USE_USB_HS */
+
+    	break;
+#endif
 
 #if USBD_CMPSIT_ACTIVATE_IMU == 1
     case CLASS_TYPE_IMU:
@@ -711,7 +741,6 @@ uint8_t  USBD_CMPSIT_AddToConfDesc(USBD_HandleTypeDef *pdev)
 uint8_t  *USBD_CMPSIT_GetFSCfgDesc(uint16_t *length)
 {
   *length = (uint16_t)CurrFSConfDescSz;
-
   return USBD_CMPSIT_FSCfgDesc;
 }
 
@@ -1012,6 +1041,56 @@ static void  USBD_CMPSIT_CDCDesc(USBD_HandleTypeDef *pdev, uint32_t pConf, __IO 
   ((USBD_ConfigDescTypeDef *)pConf)->wTotalLength = (uint16_t)(*Sze);
 }
 #endif /* USBD_CMPSIT_ACTIVATE_CDC == 1 */
+
+#if USBD_CMPSIT_ACTIVATE_HISTO == 1
+
+/**
+  * @brief  USBD_CMPSIT_HISTODesc
+  *         Configure and Append the HISTO Descriptor
+  * @param  pdev: device instance
+  * @param  pConf: Configuration descriptor pointer
+  * @param  Sze: pointer to the current configuration descriptor size
+  * @retval None
+  */
+static void USBD_CMPSIT_HISTODesc(USBD_HandleTypeDef *pdev, uint32_t pConf,
+        __IO uint32_t *Sze, uint8_t speed)
+{
+	  USBD_IfDescTypeDef *pIfDesc;
+	  USBD_EpDescTypeDef *pEpDesc;
+	  uint16_t ep_size;
+
+	  /* Determine packet size based on speed */
+	  if (speed == USBD_SPEED_HIGH)
+	  {
+	    ep_size = HISTO_DATA_PACKET_SIZE;
+	  }
+	  else
+	  {
+	    ep_size = HISTO_DATA_PACKET_SIZE;
+	  }
+
+	  /* Append HISTO Interface descriptor (9 bytes) */
+	  __USBD_CMPSIT_SET_IF(pdev->tclasslist[pdev->classId].Ifs[0],  /* Interface number */
+	                      0U,                                       /* Alternate setting */
+	                      (uint8_t)(pdev->tclasslist[pdev->classId].NumEps), /* Num endpoints */
+	                      0xFFU,                                    /* Class = Vendor Specific */
+	                      0x00U,                                    /* SubClass */
+	                      0x00U,                                    /* Protocol */
+	                      0U);                                      /* Interface string index */
+
+	  /* Append Endpoint descriptor (7 bytes) */
+	  __USBD_CMPSIT_SET_EP(pdev->tclasslist[pdev->classId].Eps[0].add, /* EP address */
+	                      USBD_EP_TYPE_BULK,                          /* EP type */
+	                      ep_size,                                    /* Max packet size */
+	                      (speed == USBD_SPEED_HIGH) ? 0U : 0U,       /* HS bulk interval = 0 */
+	                      0U);                                        /* Refresh/interval */
+
+	  /* Update Config Descriptor Header */
+	  ((USBD_ConfigDescTypeDef *)pConf)->bNumInterfaces += 1U;
+	  ((USBD_ConfigDescTypeDef *)pConf)->wTotalLength = (uint16_t)(*Sze);
+
+}
+#endif
 
 #if USBD_CMPSIT_ACTIVATE_IMU == 1
 

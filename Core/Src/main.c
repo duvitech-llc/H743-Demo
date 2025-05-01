@@ -63,8 +63,6 @@ DMA_HandleTypeDef hdma_usart3_tx;
 /* USER CODE BEGIN PV */
 __attribute__((section(".RAM_D1"))) uint8_t bitstream_buffer[MAX_BITSTREAM_SIZE]; // 160KB buffer
 
-uint8_t hid_report_buffer[4];
-extern uint8_t HID_InstID;
 extern USBD_HandleTypeDef hUsbDeviceFS;
 
 /* USER CODE END PV */
@@ -131,10 +129,6 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	hid_report_buffer[0] = 0;
-	hid_report_buffer[1] = 100;
-	hid_report_buffer[2] = 0;
-	hid_report_buffer[3] = 0;
 
   /* USER CODE END 1 */
 
@@ -215,10 +209,6 @@ int main(void)
 	HAL_Delay(100);
 	BSP_LED_Toggle(LED_BLUE);
 
-	if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET)
-	{
-		USBD_HID_SendReport(&hUsbDeviceFS, hid_report_buffer, 4, HID_InstID);
-	}
   }
   /* USER CODE END 3 */
 }

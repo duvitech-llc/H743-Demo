@@ -39,6 +39,10 @@ extern "C" {
 #include "usbd_cdc.h"
 #endif /* USBD_CMPSIT_ACTIVATE_CDC */
 
+#if USBD_CMPSIT_ACTIVATE_HISTO == 1U
+#include "usbd_histo.h"
+#endif /* USBD_CMPSIT_ACTIVATE_HISTO */
+
 #if USBD_CMPSIT_ACTIVATE_IMU == 1U
 #include "usbd_imu.h"
 #endif /* USBD_CMPSIT_ACTIVATE_IMU */

@@ -66,12 +66,12 @@
 #define USBD_PID	     				0x5750
 #define USBD_LANGID_STRING     			0x409
 #define USBD_MANUFACTURER_STRING     	"Openwater"
-#define USBD_PRODUCT_STRING_HS          "Composite_CDC_HID(HS)"
-#define USBD_PRODUCT_STRING_FS     		"Composite_CDC_HID(FS)"
-#define USBD_CONFIGURATION_STRING_FS    "CDC_HID Config"
-#define USBD_CONFIGURATION_STRING_HS    "CDC_HID Config"
-#define USBD_INTERFACE_STRING_FS   		"CDC_HID Interface"
-#define USBD_INTERFACE_STRING_HS   		"CDC_HID Interface"
+#define USBD_PRODUCT_STRING_HS          "Composite_CDC_HISTO(HS)"
+#define USBD_PRODUCT_STRING_FS     		"Composite_CDC_HISTO(FS)"
+#define USBD_CONFIGURATION_STRING_FS    "CDC_HISTO Config"
+#define USBD_CONFIGURATION_STRING_HS    "CDC_HISTO Config"
+#define USBD_INTERFACE_STRING_FS   		"CDC_HISTO Interface"
+#define USBD_INTERFACE_STRING_HS   		"CDC_HISTO Interface"
 
 #define USB_SIZ_BOS_DESC            0x0C
 
@@ -175,9 +175,9 @@ __ALIGN_BEGIN uint8_t USBD_FS_DeviceDesc[USB_LEN_DEV_DESC] __ALIGN_END =
   0x00,                       /* bcdUSB */
 #endif /* (USBD_LPM_ENABLED == 1) || (USBD_CLASS_BOS_ENABLED == 1) */
   0x02,
-  0x00,                       /* bDeviceClass */
-  0x00,                       /* bDeviceSubClass */
-  0x00,                       /* bDeviceProtocol */
+  0xEF,                       /* bDeviceClass */
+  0x02,                       /* bDeviceSubClass */
+  0x01,                       /* bDeviceProtocol */
   USB_MAX_EP0_SIZE,           /*bMaxPacketSize*/
   LOBYTE(USBD_VID),           /*idVendor*/
   HIBYTE(USBD_VID),           /*idVendor*/

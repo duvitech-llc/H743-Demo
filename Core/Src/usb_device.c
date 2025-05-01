@@ -24,7 +24,7 @@
 #include "usbd_core.h"
 #include "usbd_desc.h"
 #include "usbd_cdc.h"
-#include "usbd_hid.h"
+#include "usbd_histo.h"
 #include "usbd_cdc_if.h"
 #include "usbd_composite_builder.h"
 
@@ -37,9 +37,9 @@
 
 uint8_t CDC_EpAdd_Inst[3] = {CDC_IN_EP, CDC_OUT_EP, CDC_CMD_EP}; 	/* CDC Endpoint Addresses array */
 // uint8_t IMU_EpAdd_Inst = IMU_IN_EP; 	/* IMU Endpoint */
-uint8_t HID_EpAdd_Inst = HID_EPIN_ADDR; 	/* HID Endpoint */
+uint8_t HISTO_EpAdd_Inst[1] = { HISTO_IN_EP }; 	/* HISTO Endpoint */
 
-uint8_t CDC_InstID = 0, HID_InstID = 0;
+uint8_t CDC_InstID = 0, HISTO_InstID = 0;
 
 /* USER CODE END PV */
 
@@ -81,15 +81,6 @@ void MX_USB_DEVICE_Init(void)
     Error_Handler();
   }
 
-  /* Store HID Instance Class ID */
-  HID_InstID = hUsbDeviceFS.classId;
-
-  /* Register the HID Class */
-  if(USBD_RegisterClassComposite(&hUsbDeviceFS, USBD_HID_CLASS, CLASS_TYPE_HID, &HID_EpAdd_Inst) != USBD_OK)
-  {
-	Error_Handler();
-  }
-
   /* Store the CDC Class */
   CDC_InstID = hUsbDeviceFS.classId;
 
@@ -98,6 +89,17 @@ void MX_USB_DEVICE_Init(void)
   {
 	Error_Handler();
   }
+
+#if 1
+  /* Store HISTO Instance Class ID */
+  HISTO_InstID = hUsbDeviceFS.classId;
+
+  /* Register the HISTO Class */
+  if(USBD_RegisterClassComposite(&hUsbDeviceFS, USBD_HISTO_CLASS, CLASS_TYPE_HISTO, HISTO_EpAdd_Inst) != USBD_OK)
+  {
+	Error_Handler();
+  }
+#endif
 
   /* Add CDC Interface Class */
   if (USBD_CMPSIT_SetClassID(&hUsbDeviceFS, CLASS_TYPE_CDC, 0) != 0xFF)
