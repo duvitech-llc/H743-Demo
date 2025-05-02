@@ -36,10 +36,10 @@
 /* Private variables ---------------------------------------------------------*/
 
 uint8_t CDC_EpAdd_Inst[3] = {CDC_IN_EP, CDC_OUT_EP, CDC_CMD_EP}; 	/* CDC Endpoint Addresses array */
-// uint8_t IMU_EpAdd_Inst = IMU_IN_EP; 	/* IMU Endpoint */
+uint8_t IMU_EpAdd_Inst[1] = { IMU_IN_EP }; 	/* IMU Endpoint */
 uint8_t HISTO_EpAdd_Inst[1] = { HISTO_IN_EP }; 	/* HISTO Endpoint */
 
-uint8_t CDC_InstID = 0, HISTO_InstID = 0;
+uint8_t CDC_InstID = 0, HISTO_InstID = 0, IMU_InstID = 0;
 
 /* USER CODE END PV */
 
@@ -96,6 +96,17 @@ void MX_USB_DEVICE_Init(void)
 
   /* Register the HISTO Class */
   if(USBD_RegisterClassComposite(&hUsbDeviceFS, USBD_HISTO_CLASS, CLASS_TYPE_HISTO, HISTO_EpAdd_Inst) != USBD_OK)
+  {
+	Error_Handler();
+  }
+#endif
+
+#if 1
+  /* Store HISTO Instance Class ID */
+  IMU_InstID = hUsbDeviceFS.classId;
+
+  /* Register the HISTO Class */
+  if(USBD_RegisterClassComposite(&hUsbDeviceFS, USBD_IMU_CLASS, CLASS_TYPE_IMU, IMU_EpAdd_Inst) != USBD_OK)
   {
 	Error_Handler();
   }

@@ -387,6 +387,7 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
   HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, CDC_IN_EP & 0x7FU, 0x80);
   HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, CDC_CMD_EP & 0x7FU, 0x80);
   HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, HISTO_IN_EP & 0x7FU, 0x80);
+  HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, IMU_IN_EP & 0x7FU, 0x80);
 
   /* USER CODE END TxRx_Configuration */
   }

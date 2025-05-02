@@ -65,7 +65,7 @@
 /*---------- -----------*/
 #define USBD_MAX_NUM_INTERFACES     3U
 /*---------- -----------*/
-#define USBD_MAX_NUM_CONFIGURATION     2U
+#define USBD_MAX_NUM_CONFIGURATION     3U
 /*---------- -----------*/
 #define USBD_MAX_STR_DESC_SIZ     0x100U
 /*---------- -----------*/
@@ -90,6 +90,7 @@
 #define CDC_CMD_EP										0x82U
 
 #define HISTO_IN_EP										0x83U
+#define IMU_IN_EP                  						0x84U
 
 /* Activate the IAD option */
 #define USBD_COMPOSITE_USE_IAD							1U
@@ -99,17 +100,17 @@
 
 /* Activate classes in composite builder */
 #define USBD_CMPSIT_ACTIVATE_CDC                    	1U
-#define USBD_CMPSIT_ACTIVATE_IMU                    	0U
+#define USBD_CMPSIT_ACTIVATE_IMU                    	1U
 #define USBD_CMPSIT_ACTIVATE_HISTO                    	1U
 
 /* Define the number of supported classes */
-#define USBD_MAX_SUPPORTED_CLASS                       	2U
+#define USBD_MAX_SUPPORTED_CLASS                       	3U
 
 /* Define the number of endpoints per class */
-#define USBD_MAX_CLASS_ENDPOINTS                       	3U
+#define USBD_MAX_CLASS_ENDPOINTS                       	4U
 
 /* Define the number of maximum interfaces per class */
-#define USBD_MAX_CLASS_INTERFACES                       2U
+#define USBD_MAX_CLASS_INTERFACES                       3U
 
 /**
   * @}

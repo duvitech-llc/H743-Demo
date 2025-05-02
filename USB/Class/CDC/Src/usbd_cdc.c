@@ -619,6 +619,7 @@ static uint8_t USBD_CDC_EP0_RxReady(USBD_HandleTypeDef *pdev)
 
   return (uint8_t)USBD_OK;
 }
+
 #ifndef USE_USBD_COMPOSITE
 /**
   * @brief  USBD_CDC_GetFSCfgDesc

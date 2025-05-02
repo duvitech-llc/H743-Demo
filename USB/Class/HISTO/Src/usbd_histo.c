@@ -67,29 +67,64 @@ __ALIGN_BEGIN static uint8_t USBD_Histo_GetDeviceQualifierDescriptor[USB_LEN_DEV
 };
 #endif /* USE_USBD_COMPOSITE  */
 
+static uint8_t HISTOInEpAdd = HISTO_IN_EP;
+
 /* Private functions */
 static uint8_t USBD_Histo_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
   UNUSED(cfgidx);
 
-  /* Open endpoints */
-  USBD_LL_OpenEP(pdev, HISTO_IN_EP, USBD_EP_TYPE_BULK, HISTO_DATA_PACKET_SIZE);
-
-  return (uint8_t)USBD_OK;
+  #ifdef USE_USBD_COMPOSITE
+    /* Get the Endpoints addresses allocated for this class instance */
+    HISTOInEpAdd  = USBD_CoreGetEPAdd(pdev, USBD_EP_IN, USBD_EP_TYPE_BULK, (uint8_t)pdev->classId);
+  #endif /* USE_USBD_COMPOSITE */
+  
+    if (pdev->dev_speed == USBD_SPEED_HIGH)
+    {
+      /* Open EP IN */
+      (void)USBD_LL_OpenEP(pdev, HISTOInEpAdd, USBD_EP_TYPE_BULK, HISTO_DATA_PACKET_SIZE);
+      pdev->ep_in[HISTOInEpAdd & 0xFU].bInterval = 0;
+    }
+    else
+    {
+    /* Open EP IN */
+    (void)USBD_LL_OpenEP(pdev, HISTOInEpAdd, USBD_EP_TYPE_BULK, HISTO_DATA_PACKET_SIZE);
+      pdev->ep_in[HISTOInEpAdd & 0xFU].bInterval = 0;
+    }
+  
+    pdev->ep_in[HISTOInEpAdd & 0xFU].is_used = 1U;
+    return (uint8_t)USBD_OK;
 }
 
 static uint8_t USBD_Histo_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
   UNUSED(cfgidx);
 
-  /* Close endpoints */
-  USBD_LL_CloseEP(pdev, HISTO_IN_EP);
+#ifdef USE_USBD_COMPOSITE
+  /* Get the Endpoints addresses allocated for this CDC class instance */
+  HISTOInEpAdd  = USBD_CoreGetEPAdd(pdev, USBD_EP_IN, USBD_EP_TYPE_BULK, (uint8_t)pdev->classId);
+#endif /* USE_USBD_COMPOSITE */
 
+  /* Close EP IN */
+  (void)USBD_LL_CloseEP(pdev, HISTOInEpAdd);
+  pdev->ep_in[HISTOInEpAdd & 0xFU].is_used = 0U;
+
+#ifdef USE_USBD_COMPOSITE
+  if (pdev->pClassDataCmsit[pdev->classId] != NULL)
+  {
+    // ((USBD_HISTO_ItfTypeDef *)pdev->pUserData[pdev->classId])->DeInit();
+    (void)USBD_free(pdev->pClassDataCmsit[pdev->classId]);
+    pdev->pClassDataCmsit[pdev->classId] = NULL;
+    pdev->pClassData = NULL;
+  }
+
+#else
   /* Free memory */
   if (pdev->pClassData != NULL) {
     USBD_free(pdev->pClassData);
     pdev->pClassData = NULL;
   }
+#endif
 
   return (uint8_t)USBD_OK;
 }
