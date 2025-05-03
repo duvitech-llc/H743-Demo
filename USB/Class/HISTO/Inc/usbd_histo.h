@@ -18,7 +18,8 @@ extern "C" {
 #define HISTO_IN_EP                                   0x81U  /* EP1 for data IN */
 #endif /* HISTO_IN_EP */
 
-#define HISTO_DATA_PACKET_SIZE                 0x80U
+#define HISTO_FS_MAX_PACKET_SIZE         64U    /* Full-speed USB */
+#define HISTO_HS_MAX_PACKET_SIZE         512U   /* High-speed USB */
 
 extern USBD_ClassTypeDef USBD_HISTO;
 #define USBD_HISTO_CLASS &USBD_HISTO

@@ -181,21 +181,21 @@ static uint8_t USBD_IMU_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 #ifdef USE_USBD_COMPOSITE
   /* Get the Endpoints addresses allocated for this class instance */
   IMUInEpAdd  = USBD_CoreGetEPAdd(pdev, USBD_EP_IN, USBD_EP_TYPE_BULK, (uint8_t)pdev->classId);
+  printf("IMU_Init DataIN: ep=0x%02X classId=%d\r\n", IMUInEpAdd, (uint8_t)pdev->classId);
 #endif /* USE_USBD_COMPOSITE */
 
   if (pdev->dev_speed == USBD_SPEED_HIGH)
   {
     /* Open EP IN */
     (void)USBD_LL_OpenEP(pdev, IMUInEpAdd, USBD_EP_TYPE_BULK, IMU_HS_MAX_PACKET_SIZE);
-    pdev->ep_in[IMUInEpAdd & 0xFU].bInterval = 0;
   }
   else
   {
 	/* Open EP IN */
 	(void)USBD_LL_OpenEP(pdev, IMUInEpAdd, USBD_EP_TYPE_BULK, IMU_FS_MAX_PACKET_SIZE);
-    pdev->ep_in[IMUInEpAdd & 0xFU].bInterval = 0;
   }
 
+  pdev->ep_in[IMUInEpAdd & 0xFU].bInterval = 0;
   pdev->ep_in[IMUInEpAdd & 0xFU].is_used = 1U;
   return (uint8_t)USBD_OK;
 }

@@ -386,7 +386,7 @@ uint8_t  USBD_CMPSIT_AddToConfDesc(USBD_HandleTypeDef *pdev)
 #if USBD_CMPSIT_ACTIVATE_HISTO == 1
     case CLASS_TYPE_HISTO:
         /* Setup Max packet size for HISTO */
-        pdev->tclasslist[pdev->classId].CurrPcktSze = (pdev->dev_speed == USBD_SPEED_HIGH) ? HISTO_DATA_PACKET_SIZE : HISTO_DATA_PACKET_SIZE;
+        pdev->tclasslist[pdev->classId].CurrPcktSze = (pdev->dev_speed == USBD_SPEED_HIGH) ? HISTO_HS_MAX_PACKET_SIZE : HISTO_FS_MAX_PACKET_SIZE;
 
         /* Find the first available interface slot */
         idxIf = USBD_CMPSIT_FindFreeIFNbr(pdev);
@@ -1061,11 +1061,11 @@ static void USBD_CMPSIT_HISTODesc(USBD_HandleTypeDef *pdev, uint32_t pConf,
 	  /* Determine packet size based on speed */
 	  if (speed == USBD_SPEED_HIGH)
 	  {
-	    ep_size = HISTO_DATA_PACKET_SIZE;
+	    ep_size = HISTO_HS_MAX_PACKET_SIZE;
 	  }
 	  else
 	  {
-	    ep_size = HISTO_DATA_PACKET_SIZE;
+	    ep_size = HISTO_FS_MAX_PACKET_SIZE;
 	  }
 
 	  /* Append HISTO Interface descriptor (9 bytes) */

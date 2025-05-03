@@ -99,9 +99,7 @@ void MX_USB_DEVICE_Init(void)
   {
 	Error_Handler();
   }
-#endif
 
-#if 1
   /* Store HISTO Instance Class ID */
   IMU_InstID = hUsbDeviceFS.classId;
 
@@ -113,7 +111,7 @@ void MX_USB_DEVICE_Init(void)
 #endif
 
   /* Add CDC Interface Class */
-  if (USBD_CMPSIT_SetClassID(&hUsbDeviceFS, CLASS_TYPE_CDC, 0) != 0xFF)
+  if (USBD_CMPSIT_SetClassID(&hUsbDeviceFS, CLASS_TYPE_CDC, CDC_InstID) != 0xFF)
   {
 	USBD_CDC_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_fops);
   }

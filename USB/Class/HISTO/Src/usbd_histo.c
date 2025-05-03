@@ -77,21 +77,21 @@ static uint8_t USBD_Histo_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
   #ifdef USE_USBD_COMPOSITE
     /* Get the Endpoints addresses allocated for this class instance */
     HISTOInEpAdd  = USBD_CoreGetEPAdd(pdev, USBD_EP_IN, USBD_EP_TYPE_BULK, (uint8_t)pdev->classId);
+    printf("HISTO_Init DataIN: ep=0x%02X classId=%d\r\n", HISTOInEpAdd, (uint8_t)pdev->classId);
   #endif /* USE_USBD_COMPOSITE */
   
     if (pdev->dev_speed == USBD_SPEED_HIGH)
     {
       /* Open EP IN */
-      (void)USBD_LL_OpenEP(pdev, HISTOInEpAdd, USBD_EP_TYPE_BULK, HISTO_DATA_PACKET_SIZE);
-      pdev->ep_in[HISTOInEpAdd & 0xFU].bInterval = 0;
+      (void)USBD_LL_OpenEP(pdev, HISTOInEpAdd, USBD_EP_TYPE_BULK, HISTO_HS_MAX_PACKET_SIZE);
     }
     else
     {
     /* Open EP IN */
-    (void)USBD_LL_OpenEP(pdev, HISTOInEpAdd, USBD_EP_TYPE_BULK, HISTO_DATA_PACKET_SIZE);
-      pdev->ep_in[HISTOInEpAdd & 0xFU].bInterval = 0;
+    (void)USBD_LL_OpenEP(pdev, HISTOInEpAdd, USBD_EP_TYPE_BULK, HISTO_FS_MAX_PACKET_SIZE);
     }
-  
+
+    pdev->ep_in[HISTOInEpAdd & 0xFU].bInterval = 0;
     pdev->ep_in[HISTOInEpAdd & 0xFU].is_used = 1U;
     return (uint8_t)USBD_OK;
 }
