@@ -193,13 +193,17 @@ static uint8_t USBD_Comms_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)
           uint16_t remaining = tx_comms_total_len - tx_comms_ptr;
           uint16_t pkt_len = MIN((pdev->dev_speed == USBD_SPEED_HIGH)?COMMS_HS_MAX_PACKET_SIZE:COMMS_FS_MAX_PACKET_SIZE, remaining);
 
+  		  printf("Cont TX data: %d size: %d\r\n", tx_comms_total_len, pkt_len);
           ret =  USBD_LL_Transmit(pdev, COMMSInEpAdd, &pTxCommsBuff[tx_comms_ptr], pkt_len);
       }
       else
       {
           // Transfer complete
           comms_ep_data = 0;
+          printf("USBD_COMMS_TxCpltCallback\r\n");
           USBD_COMMS_TxCpltCallback(pTxCommsBuff, tx_comms_total_len, COMMSInEpAdd);
+          // Send ZLP to indicate completion
+          USBD_LL_Transmit(pdev, COMMSInEpAdd, NULL, 0);
       }
   }else{
 	pdev->ep_in[COMMSInEpAdd & 0xFU].total_length = 0U;
@@ -219,6 +223,7 @@ static uint8_t USBD_Comms_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum)
   uint32_t rx_len = USBD_LL_GetRxDataSize(pdev, COMMSOutEpAdd);
   uint32_t packet_size = (pdev->dev_speed == USBD_SPEED_HIGH)?COMMS_HS_MAX_PACKET_SIZE:COMMS_FS_MAX_PACKET_SIZE;
 
+  printf("USBD_Comms_DataOut rx_len: %ld  packet_size: %ld\r\n", rx_len, packet_size);
   if(pUserRxBuff){
 	  uint8_t* pUserRx = pUserRxBuff + rxIndex;
 	  memcpy(pUserRx, pRxCommsBuff, rx_len);
@@ -267,7 +272,7 @@ uint8_t  USBD_COMMS_SetTxBuffer(USBD_HandleTypeDef *pdev, uint8_t  *pbuff, uint1
 
 		pdev->ep_in[COMMSInEpAdd & 0xFU].total_length = tx_comms_total_len;
 		comms_ep_data = 1;
-
+		printf("Start TX data: %d size: %d\r\n", tx_comms_total_len, pkt_len);
 		ret = USBD_LL_Transmit(pdev, COMMSInEpAdd, pTxCommsBuff, pkt_len);
 	}
 	else

@@ -23,7 +23,7 @@ volatile uint8_t rx_flag = 0;
 volatile uint8_t tx_flag = 0;
 const uint32_t zero_val = 0;
 
-#define TX_TIMEOUT 150
+#define TX_TIMEOUT 200
 
 extern USBD_HandleTypeDef hUsbDeviceFS;
 
@@ -72,7 +72,7 @@ void comms_interface_send(UartPacket *pResp) {
 	uint32_t start_time = HAL_GetTick();
 
 	while (!tx_flag) {
-		if ((HAL_GetTick() - start_time) >= TX_TIMEOUT) {
+		if ((HAL_GetTick() - start_time) >= TX_TIMEOUT) {  // calculate timeout should be the number of packets times 10-50ms
 			// Timeout handling: Log error and break out or reset the flag.
 			printf("TX Timeout\r\n");
 			break;
