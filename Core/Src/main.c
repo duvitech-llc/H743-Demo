@@ -200,11 +200,11 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  // comms_host_start();
-  HAL_Delay(2000);
-  USBD_COMMS_SetTxBuffer(&hUsbDeviceFS, (uint8_t*)"GEORGE\r\n", 8);
-  USBD_HISTO_SetTxBuffer(&hUsbDeviceFS, (uint8_t*)"HELLO\r\n", 7);
-  USBD_IMU_SetTxBuffer(&hUsbDeviceFS, (uint8_t*)"OLLEH\r\n", 7);
+  comms_host_start();
+  //HAL_Delay(2000);
+  //USBD_COMMS_SetTxBuffer(&hUsbDeviceFS, (uint8_t*)"GEORGE\r\n", 8);
+  //USBD_HISTO_SetTxBuffer(&hUsbDeviceFS, (uint8_t*)"HELLO\r\n", 7);
+  //USBD_IMU_SetTxBuffer(&hUsbDeviceFS, (uint8_t*)"OLLEH\r\n", 7);
 
   while (1)
   {
@@ -557,7 +557,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
   if (htim->Instance == TIM12)
   {
-	COMMS_Idle_Timer_Handler();
+	  USBD_COMMS_Idle_Timer_Handler();
   }
 
   /* USER CODE END Callback 0 */

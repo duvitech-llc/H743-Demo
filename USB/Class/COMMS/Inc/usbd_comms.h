@@ -29,11 +29,14 @@ extern USBD_ClassTypeDef USBD_COMMS;
 #define USBD_COMMS_CLASS &USBD_COMMS
 
 uint8_t  USBD_COMMS_SetTxBuffer(USBD_HandleTypeDef *pdev, uint8_t  *pbuff, uint16_t length);
-void COMMS_Idle_Timer_Handler();
-uint8_t COMMS_Transmit(uint8_t* Buf, uint16_t Len);
-void COMMS_FlushRxBuffer();
-void COMMS_ReceiveToIdle(uint8_t* Buf, uint16_t max_size);
+void USBD_COMMS_Idle_Timer_Handler();
+uint8_t USBD_COMMS_Transmit(USBD_HandleTypeDef *pdev, uint8_t* Buf, uint16_t Len);
+void USBD_COMMS_FlushRxBuffer();
+void USBD_COMMS_ReceiveToIdle(uint8_t* Buf, uint16_t max_size);
+uint8_t USBD_COMMS_RegisterInterface(USBD_HandleTypeDef *pdev, uint8_t *buffer);
 uint8_t USBD_COMMS_RegisterRxCallback(void (*cb)(uint8_t *buf, uint16_t len));
+void USBD_COMMS_RxCpltCallback(uint16_t Len);
+void USBD_COMMS_TxCpltCallback(uint8_t *Buf, uint32_t Len, uint8_t epnum);
 
 #ifdef __cplusplus
 }

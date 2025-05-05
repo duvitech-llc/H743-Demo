@@ -23,7 +23,9 @@ volatile uint8_t rx_flag = 0;
 volatile uint8_t tx_flag = 0;
 const uint32_t zero_val = 0;
 
-#define TX_TIMEOUT 5
+#define TX_TIMEOUT 150
+
+extern USBD_HandleTypeDef hUsbDeviceFS;
 
 void comms_interface_send(UartPacket *pResp) {
 	tx_flag = 0;  // Clear the flag before starting transmission
@@ -64,7 +66,7 @@ void comms_interface_send(UartPacket *pResp) {
 	txBuffer[bufferIndex++] = OW_END_BYTE;
 
 	// Initiate transmission via USB CDC
-	COMMS_Transmit(txBuffer, bufferIndex);
+	USBD_COMMS_Transmit(&hUsbDeviceFS, txBuffer, bufferIndex);
 
 	// Wait for the transmit complete flag with a timeout to avoid infinite loop.
 	uint32_t start_time = HAL_GetTick();
@@ -152,12 +154,12 @@ void comms_host_start(void) {
 	memset(rxBuffer, 0, sizeof(rxBuffer));
 	ptrReceive = 0;
 
-	COMMS_FlushRxBuffer();
+	USBD_COMMS_FlushRxBuffer();
 
 	rx_flag = 0;
 	tx_flag = 0;
 
-	COMMS_ReceiveToIdle(rxBuffer, COMMAND_MAX_SIZE);
+	USBD_COMMS_ReceiveToIdle(rxBuffer, COMMAND_MAX_SIZE);
 
 }
 
@@ -257,15 +259,14 @@ NextDataPacket:
 
 	ptrReceive = 0;
 	rx_flag = 0;
-	COMMS_ReceiveToIdle(rxBuffer, COMMAND_MAX_SIZE);
+	USBD_COMMS_ReceiveToIdle(rxBuffer, COMMAND_MAX_SIZE);
 }
 
 // Callback functions
-void CDC_ReceiveCplt_Callback(uint16_t len) {
+void USBD_COMMS_RxCpltCallback(uint16_t len) {
 	rx_flag = 1;
 }
 
-int8_t CDC_TransmitCplt_Callback(uint8_t *Buf, uint32_t *Len, uint8_t epnum) {
+void USBD_COMMS_TxCpltCallback(uint8_t *Buf, uint32_t Len, uint8_t epnum) {
 	tx_flag = 1;
-	return HAL_OK;
 }
