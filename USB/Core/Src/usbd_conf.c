@@ -23,7 +23,6 @@
 #include "stm32h7xx_hal.h"
 #include "usbd_def.h"
 #include "usbd_core.h"
-#include "usbd_cdc.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -384,8 +383,7 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
   /* USER CODE BEGIN TxRx_Configuration */
   HAL_PCDEx_SetRxFiFo(&hpcd_USB_OTG_FS, 0x80);
   HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, 0, 0x40);
-  HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, CDC_IN_EP & 0x7FU, 0x80);
-  HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, CDC_CMD_EP & 0x7FU, 0x80);
+  HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, COMMS_IN_EP & 0x7FU, 0x80);
   HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, HISTO_IN_EP & 0x7FU, 0x80);
   HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, IMU_IN_EP & 0x7FU, 0x80);
 
@@ -649,8 +647,7 @@ USBD_StatusTypeDef USBD_LL_SetTestMode(USBD_HandleTypeDef *pdev, uint8_t testmod
 void *USBD_static_malloc(uint32_t size)
 {
   UNUSED(size);
-  static uint32_t mem[(sizeof(USBD_CDC_HandleTypeDef)/4)+1];/* On 32-bit boundary */
-  return mem;
+  return NULL;
 }
 
 /**

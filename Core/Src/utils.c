@@ -49,6 +49,7 @@ const uint16_t crc16_tab[256] = {
 };
 
 void printBuffer(const uint8_t* buffer, uint32_t size) {
+	if(size < 1) return;
 	printf("\r\nBuffer\r\n\r\n");
     for (uint32_t i = 0; i < size; i++) {
         printf("%02X ", buffer[i]); // Print each byte in hexadecimal format

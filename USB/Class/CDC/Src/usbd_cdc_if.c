@@ -162,11 +162,10 @@ static int8_t CDC_Init(void)
 #ifdef USE_USBD_COMPOSITE
   hUsbDeviceFS.classId = CDC_InstID;
   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0, CDC_InstID);
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS, CDC_InstID);
 #else
   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
 #endif
+  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
   return (USBD_OK);
   /* USER CODE END 3 */
 }
@@ -273,11 +272,7 @@ static int8_t CDC_Control(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 static int8_t CDC_Receive(uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
-#ifdef USE_USBD_COMPOSITE
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0], CDC_InstID);
-#else
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
-#endif
 
   uint16_t len = (uint16_t) *Len; // Get length
   uint16_t tempHeadPos = rxIndex;
@@ -305,6 +300,7 @@ static int8_t CDC_Receive(uint8_t* Buf, uint32_t *Len)
   }
 
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+
   return (USBD_OK);
   /* USER CODE END 6 */
 }

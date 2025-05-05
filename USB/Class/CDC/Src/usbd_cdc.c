@@ -307,11 +307,11 @@ static uint8_t USBD_CDC_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
   CDCInEpAdd  = USBD_CoreGetEPAdd(pdev, USBD_EP_IN, USBD_EP_TYPE_BULK, (uint8_t)pdev->classId);
   CDCOutEpAdd = USBD_CoreGetEPAdd(pdev, USBD_EP_OUT, USBD_EP_TYPE_BULK, (uint8_t)pdev->classId);
   CDCCmdEpAdd = USBD_CoreGetEPAdd(pdev, USBD_EP_IN, USBD_EP_TYPE_INTR, (uint8_t)pdev->classId);
-
-  printf("CDC_Init DataIN: ep=0x%02X classId=%d\r\n", CDCInEpAdd, (uint8_t)pdev->classId);
-  printf("CDC_Init DataOut: ep=0x%02X classId=%d\r\n", CDCOutEpAdd, (uint8_t)pdev->classId);
-  printf("CDC_Init CMD: ep=0x%02X classId=%d\r\n", CDCCmdEpAdd, (uint8_t)pdev->classId);
 #endif /* USE_USBD_COMPOSITE */
+
+  printf("CDC_Init DATA IN EP: 0x%02X ClassID: 0x%02X\r\n", CDCInEpAdd, (uint8_t)pdev->classId);
+  printf("CDC_Init DATA OUT EP: 0x%02X ClassID: 0x%02X\r\n", CDCOutEpAdd, (uint8_t)pdev->classId);
+  printf("CDC_Init CMD IN EP: 0x%02X ClassID: 0x%02X\r\n", CDCCmdEpAdd, (uint8_t)pdev->classId);
 
   if (pdev->dev_speed == USBD_SPEED_HIGH)
   {
@@ -326,11 +326,6 @@ static uint8_t USBD_CDC_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
                          CDC_DATA_HS_OUT_PACKET_SIZE);
 
     pdev->ep_out[CDCOutEpAdd & 0xFU].is_used = 1U;
-
-    /* Open Command IN EP */
-    (void)USBD_LL_OpenEP(pdev, CDCCmdEpAdd, USBD_EP_TYPE_INTR, CDC_CMD_PACKET_SIZE);
-    pdev->ep_in[CDCCmdEpAdd & 0xFU].is_used = 1U;
-
 
     /* Set bInterval for CDC CMD Endpoint */
     pdev->ep_in[CDCCmdEpAdd & 0xFU].bInterval = CDC_HS_BINTERVAL;
@@ -349,14 +344,13 @@ static uint8_t USBD_CDC_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 
     pdev->ep_out[CDCOutEpAdd & 0xFU].is_used = 1U;
 
-    /* Open Command IN EP */
-    (void)USBD_LL_OpenEP(pdev, CDCCmdEpAdd, USBD_EP_TYPE_INTR, CDC_CMD_PACKET_SIZE);
-    pdev->ep_in[CDCCmdEpAdd & 0xFU].is_used = 1U;
-
     /* Set bInterval for CMD Endpoint */
     pdev->ep_in[CDCCmdEpAdd & 0xFU].bInterval = CDC_FS_BINTERVAL;
   }
 
+  /* Open Command IN EP */
+  (void)USBD_LL_OpenEP(pdev, CDCCmdEpAdd, USBD_EP_TYPE_INTR, CDC_CMD_PACKET_SIZE);
+  pdev->ep_in[CDCCmdEpAdd & 0xFU].is_used = 1U;
 
   hcdc->RxBuffer = NULL;
 
@@ -547,7 +541,7 @@ static uint8_t USBD_CDC_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)
 {
   USBD_CDC_HandleTypeDef *hcdc;
   PCD_HandleTypeDef *hpcd = (PCD_HandleTypeDef *)pdev->pData;
-  printf("DataIn called for ep=0x%02X\r\n", epnum);
+
   if (pdev->pClassDataCmsit[pdev->classId] == NULL)
   {
     return (uint8_t)USBD_FAIL;
@@ -629,7 +623,6 @@ static uint8_t USBD_CDC_EP0_RxReady(USBD_HandleTypeDef *pdev)
 
   return (uint8_t)USBD_OK;
 }
-
 #ifndef USE_USBD_COMPOSITE
 /**
   * @brief  USBD_CDC_GetFSCfgDesc
@@ -794,15 +787,9 @@ uint8_t USBD_CDC_SetTxBuffer(USBD_HandleTypeDef *pdev,
   * @param  pbuff: Rx Buffer
   * @retval status
   */
-#ifdef USE_USBD_COMPOSITE
-uint8_t USBD_CDC_SetRxBuffer(USBD_HandleTypeDef *pdev, uint8_t *pbuff, uint8_t ClassId)
-{
-  USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef *)pdev->pClassDataCmsit[ClassId];
-#else
 uint8_t USBD_CDC_SetRxBuffer(USBD_HandleTypeDef *pdev, uint8_t *pbuff)
 {
   USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef *)pdev->pClassDataCmsit[pdev->classId];
-#endif /* USE_USBD_COMPOSITE */
 
   if (hcdc == NULL)
   {
@@ -837,7 +824,6 @@ uint8_t USBD_CDC_TransmitPacket(USBD_HandleTypeDef *pdev)
 #ifdef USE_USBD_COMPOSITE
   /* Get the Endpoints addresses allocated for this class instance */
   CDCInEpAdd  = USBD_CoreGetEPAdd(pdev, USBD_EP_IN, USBD_EP_TYPE_BULK, ClassId);
-  printf("CDC_TransmitPacket TX: ep=0x%02X len=%lu state=%lu\r\n", CDCInEpAdd, hcdc->TxLength, hcdc->TxState);
 #endif  /* USE_USBD_COMPOSITE */
 
   if (hcdc == NULL)

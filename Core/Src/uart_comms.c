@@ -6,10 +6,10 @@
  */
 
 #include "main.h"
+#include "usbd_comms.h"
 #include "uart_comms.h"
 #include "utils.h"
 #include <string.h>
-#include "usbd_cdc_if.h"
 
 // Private variables
 uint8_t rxBuffer[COMMAND_MAX_SIZE];
@@ -64,7 +64,7 @@ void comms_interface_send(UartPacket *pResp) {
 	txBuffer[bufferIndex++] = OW_END_BYTE;
 
 	// Initiate transmission via USB CDC
-	CDC_Transmit(txBuffer, bufferIndex);
+	COMMS_Transmit(txBuffer, bufferIndex);
 
 	// Wait for the transmit complete flag with a timeout to avoid infinite loop.
 	uint32_t start_time = HAL_GetTick();
@@ -152,12 +152,12 @@ void comms_host_start(void) {
 	memset(rxBuffer, 0, sizeof(rxBuffer));
 	ptrReceive = 0;
 
-	CDC_FlushRxBuffer();
+	COMMS_FlushRxBuffer();
 
 	rx_flag = 0;
 	tx_flag = 0;
 
-	CDC_ReceiveToIdle(rxBuffer, COMMAND_MAX_SIZE);
+	COMMS_ReceiveToIdle(rxBuffer, COMMAND_MAX_SIZE);
 
 }
 
@@ -257,7 +257,7 @@ NextDataPacket:
 
 	ptrReceive = 0;
 	rx_flag = 0;
-	CDC_ReceiveToIdle(rxBuffer, COMMAND_MAX_SIZE);
+	COMMS_ReceiveToIdle(rxBuffer, COMMAND_MAX_SIZE);
 }
 
 // Callback functions
@@ -267,5 +267,5 @@ void CDC_ReceiveCplt_Callback(uint16_t len) {
 
 int8_t CDC_TransmitCplt_Callback(uint8_t *Buf, uint32_t *Len, uint8_t epnum) {
 	tx_flag = 1;
-	return USBD_OK;
+	return HAL_OK;
 }

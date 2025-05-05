@@ -23,9 +23,8 @@
 #include "usb_device.h"
 #include "usbd_core.h"
 #include "usbd_desc.h"
-#include "usbd_cdc.h"
+#include "usbd_comms.h"
 #include "usbd_histo.h"
-#include "usbd_cdc_if.h"
 #include "usbd_composite_builder.h"
 
 /* USER CODE BEGIN Includes */
@@ -35,11 +34,11 @@
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
-uint8_t CDC_EpAdd_Inst[3] = {CDC_IN_EP, CDC_OUT_EP, CDC_CMD_EP}; 	/* CDC Endpoint Addresses array */
-uint8_t IMU_EpAdd_Inst[1] = { IMU_IN_EP }; 	/* IMU Endpoint */
+uint8_t COMMS_EpAdd_Inst[3] = {COMMS_IN_EP, COMMS_OUT_EP}; 	/* COMMS Endpoint Addresses array */
 uint8_t HISTO_EpAdd_Inst[1] = { HISTO_IN_EP }; 	/* HISTO Endpoint */
+uint8_t IMU_EpAdd_Inst[1] = { IMU_IN_EP }; 	/* IMU Endpoint */
 
-uint8_t CDC_InstID = 0, HISTO_InstID = 0, IMU_InstID = 0;
+uint8_t COMMS_InstID = 0, HISTO_InstID = 0, IMU_InstID = 0;
 
 /* USER CODE END PV */
 
@@ -82,10 +81,10 @@ void MX_USB_DEVICE_Init(void)
   }
 
   /* Store the CDC Class */
-  CDC_InstID = hUsbDeviceFS.classId;
+  COMMS_InstID = hUsbDeviceFS.classId;
 
   /* Register CDC Class First Instance */
-  if(USBD_RegisterClassComposite(&hUsbDeviceFS, USBD_CDC_CLASS, CLASS_TYPE_CDC, CDC_EpAdd_Inst) != USBD_OK)
+  if(USBD_RegisterClassComposite(&hUsbDeviceFS, USBD_COMMS_CLASS, CLASS_TYPE_COMMS, COMMS_EpAdd_Inst) != USBD_OK)
   {
 	Error_Handler();
   }
@@ -109,12 +108,6 @@ void MX_USB_DEVICE_Init(void)
 	Error_Handler();
   }
 #endif
-
-  /* Add CDC Interface Class */
-  if (USBD_CMPSIT_SetClassID(&hUsbDeviceFS, CLASS_TYPE_CDC, CDC_InstID) != 0xFF)
-  {
-	USBD_CDC_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_fops);
-  }
 
   if (USBD_Start(&hUsbDeviceFS) != USBD_OK)
   {

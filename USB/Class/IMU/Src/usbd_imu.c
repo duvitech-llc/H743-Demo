@@ -39,6 +39,9 @@
 #include "usbd_imu.h"
 #include "usbd_ctlreq.h"
 
+#ifndef MIN
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#endif
 
 /** @addtogroup STM32_USB_DEVICE_LIBRARY
   * @{
@@ -157,7 +160,13 @@ __ALIGN_BEGIN static uint8_t USBD_IMU_CfgDesc[USB_IMU_CONFIG_DESC_SIZ] __ALIGN_E
 };
 #endif /* USE_USBD_COMPOSITE  */
 
+extern uint8_t IMU_InstID;
+uint8_t* pTxIMUBuff = 0;
 static uint8_t IMUInEpAdd = IMU_IN_EP;
+static __IO uint8_t imu_ep_enabled = 0;
+__IO uint8_t imu_ep_data = 0;
+static uint16_t tx_imu_total_len = 0;
+static uint16_t tx_imu_ptr = 0;
 
 /**
   * @}
@@ -181,8 +190,12 @@ static uint8_t USBD_IMU_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 #ifdef USE_USBD_COMPOSITE
   /* Get the Endpoints addresses allocated for this class instance */
   IMUInEpAdd  = USBD_CoreGetEPAdd(pdev, USBD_EP_IN, USBD_EP_TYPE_BULK, (uint8_t)pdev->classId);
-  printf("IMU_Init DataIN: ep=0x%02X classId=%d\r\n", IMUInEpAdd, (uint8_t)pdev->classId);
 #endif /* USE_USBD_COMPOSITE */
+  printf("IMU_Init DATA IN EP: 0x%02X ClassID: 0x%02X\r\n", IMUInEpAdd, (uint8_t)pdev->classId);
+  pTxIMUBuff = (uint8_t*)malloc(USB_IMU_MAX_SIZE);
+  if(pTxIMUBuff == NULL){
+  	Error_Handler();
+  }
 
   if (pdev->dev_speed == USBD_SPEED_HIGH)
   {
@@ -194,6 +207,7 @@ static uint8_t USBD_IMU_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 	/* Open EP IN */
 	(void)USBD_LL_OpenEP(pdev, IMUInEpAdd, USBD_EP_TYPE_BULK, IMU_FS_MAX_PACKET_SIZE);
   }
+  imu_ep_enabled = 1;
 
   pdev->ep_in[IMUInEpAdd & 0xFU].bInterval = 0;
   pdev->ep_in[IMUInEpAdd & 0xFU].is_used = 1U;
@@ -219,7 +233,13 @@ static uint8_t USBD_IMU_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
   /* Close EP IN */
   (void)USBD_LL_CloseEP(pdev, IMUInEpAdd);
   pdev->ep_in[IMUInEpAdd & 0xFU].is_used = 0U;
+  pdev->ep_in[IMUInEpAdd & 0xFU].total_length = 0U;
+  imu_ep_enabled = 0;
 
+  if(pTxIMUBuff){
+	free(pTxIMUBuff);
+	pTxIMUBuff = 0;
+  }
 #ifdef USE_USBD_COMPOSITE
   if (pdev->pClassDataCmsit[pdev->classId] != NULL)
   {
@@ -263,14 +283,72 @@ static uint8_t USBD_IMU_Setup(USBD_HandleTypeDef *pdev,
   */
 static uint8_t USBD_IMU_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)
 {
+	uint8_t ret = USBD_OK;
 
-  return (uint8_t)USBD_OK;
+#ifdef USE_USBD_COMPOSITE
+	  /* Get the Endpoints addresses allocated for this CDC class instance */
+	  IMUInEpAdd  = USBD_CoreGetEPAdd(pdev, USBD_EP_IN, USBD_EP_TYPE_BULK, IMU_InstID);
+#endif /* USE_USBD_COMPOSITE */
+
+  if(imu_ep_data==1)
+  {
+
+      tx_imu_ptr += (pdev->dev_speed == USBD_SPEED_HIGH)?IMU_HS_MAX_PACKET_SIZE:IMU_FS_MAX_PACKET_SIZE;
+
+      if (tx_imu_ptr < tx_imu_total_len)
+      {
+          uint16_t remaining = tx_imu_total_len - tx_imu_ptr;
+          uint16_t pkt_len = MIN((pdev->dev_speed == USBD_SPEED_HIGH)?IMU_HS_MAX_PACKET_SIZE:IMU_FS_MAX_PACKET_SIZE, remaining);
+
+          ret =  USBD_LL_Transmit(pdev, IMUInEpAdd, &pTxIMUBuff[tx_imu_ptr], pkt_len);
+      }
+      else
+      {
+    	  imu_ep_data = 0;
+      }
+  }else{
+	pdev->ep_in[IMUInEpAdd & 0xFU].total_length = 0U;
+	/* Send ZLP */
+	ret = USBD_LL_Transmit (pdev, IMUInEpAdd, NULL, 0U);
+  }
+
+  return ret;
 }
 
 
 uint8_t USBD_IMU_SendData(USBD_HandleTypeDef *pdev, uint8_t *data, uint16_t len, uint8_t ep_idx)
 {
   return (uint8_t)USBD_OK;
+}
+
+uint8_t  USBD_IMU_SetTxBuffer(USBD_HandleTypeDef *pdev, uint8_t  *pbuff, uint16_t length)
+{
+	uint8_t ret = USBD_OK;
+	if(imu_ep_enabled == 1 && imu_ep_data==0)
+	{
+#ifdef USE_USBD_COMPOSITE
+	  /* Get the Endpoints addresses allocated for this CDC class instance */
+	  IMUInEpAdd  = USBD_CoreGetEPAdd(pdev, USBD_EP_IN, USBD_EP_TYPE_BULK, IMU_InstID);
+#endif /* USE_USBD_COMPOSITE */
+	  USBD_LL_FlushEP(pdev, IMUInEpAdd);
+	  memset((uint32_t*)pTxIMUBuff,0,USB_IMU_MAX_SIZE/4);
+	  memcpy(pTxIMUBuff,pbuff,length);
+
+      tx_imu_total_len = length;
+      tx_imu_ptr = 0;
+
+      uint16_t pkt_len = MIN((pdev->dev_speed == USBD_SPEED_HIGH)?IMU_HS_MAX_PACKET_SIZE:IMU_FS_MAX_PACKET_SIZE, tx_imu_total_len);
+
+	  pdev->ep_in[IMUInEpAdd & 0xFU].total_length = tx_imu_total_len;
+	  imu_ep_data = 1;
+
+	  ret = USBD_LL_Transmit(pdev, IMUInEpAdd, pTxIMUBuff, (uint16_t)pkt_len);
+	}
+	else
+	{
+		ret = USBD_BUSY;
+	}
+  return ret;
 }
 
 uint8_t USBD_IMU_RegisterInterface(USBD_HandleTypeDef *pdev, uint8_t *buffer)

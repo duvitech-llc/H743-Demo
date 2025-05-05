@@ -331,7 +331,8 @@ typedef enum
   CLASS_TYPE_PRINTER = 11,
   CLASS_TYPE_CCID    = 12,
   CLASS_TYPE_IMU	 = 13,
-  CLASS_TYPE_HISTO   = 14
+  CLASS_TYPE_HISTO   = 14,
+  CLASS_TYPE_COMMS   = 15
 } USBD_CompositeClassTypeDef;
 
 
