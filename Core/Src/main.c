@@ -57,6 +57,7 @@ CRC_HandleTypeDef hcrc;
 I2C_HandleTypeDef hi2c1;
 
 TIM_HandleTypeDef htim12;
+TIM_HandleTypeDef htim17;
 
 UART_HandleTypeDef huart3;
 DMA_HandleTypeDef hdma_usart3_rx;
@@ -66,6 +67,11 @@ DMA_HandleTypeDef hdma_usart3_tx;
 __attribute__((section(".RAM_D1"))) uint8_t bitstream_buffer[MAX_BITSTREAM_SIZE]; // 160KB buffer
 
 extern USBD_HandleTypeDef hUsbDeviceFS;
+
+ICM_Axis3D a;
+ICM_Axis3D m;
+ICM_Axis3D g;
+float t;
 
 /* USER CODE END PV */
 
@@ -78,6 +84,7 @@ static void MX_USART3_UART_Init(void);
 static void MX_CRC_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_TIM12_Init(void);
+static void MX_TIM17_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -160,6 +167,7 @@ int main(void)
   MX_CRC_Init();
   MX_I2C1_Init();
   MX_TIM12_Init();
+  MX_TIM17_Init();
   /* USER CODE BEGIN 2 */
 
   init_dma_logging();
@@ -172,7 +180,7 @@ int main(void)
 
   if (ICM_WHOAMI() == ICM20948_EXPECTED_ID)
   {
-	if(ICM_Init() != HAL_OK){
+	if(ICM_Init(0,0,0) != HAL_OK){
 		printf("Failed to initialize IMU\r\n\n");
 	}
 	else
@@ -206,6 +214,8 @@ int main(void)
   //USBD_HISTO_SetTxBuffer(&hUsbDeviceFS, (uint8_t*)"HELLO\r\n", 7);
   //USBD_IMU_SetTxBuffer(&hUsbDeviceFS, (uint8_t*)"OLLEH\r\n", 7);
 
+  // HAL_TIM_Base_Start_IT(&htim17);
+  // printf("G: %d, %d, %d M: %d, %d, %d A: %d, %d, %d T: %d.%02d\r\n",g.x, g.y, g.z, m.x, m.y, m.z, a.x, a.y, a.z, (int)t, (((int)t - (int)t) * 100));
   while (1)
   {
 
@@ -215,7 +225,6 @@ int main(void)
 	comms_host_check_received(); // check comms
 	HAL_Delay(100);
 	BSP_LED_Toggle(LED_BLUE);
-
   }
   /* USER CODE END 3 */
 }
@@ -403,6 +412,38 @@ static void MX_TIM12_Init(void)
 }
 
 /**
+  * @brief TIM17 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM17_Init(void)
+{
+
+  /* USER CODE BEGIN TIM17_Init 0 */
+
+  /* USER CODE END TIM17_Init 0 */
+
+  /* USER CODE BEGIN TIM17_Init 1 */
+
+  /* USER CODE END TIM17_Init 1 */
+  htim17.Instance = TIM17;
+  htim17.Init.Prescaler = 240-1;
+  htim17.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim17.Init.Period = 25000;
+  htim17.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim17.Init.RepetitionCounter = 0;
+  htim17.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim17) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM17_Init 2 */
+
+  /* USER CODE END TIM17_Init 2 */
+
+}
+
+/**
   * @brief USART3 Initialization Function
   * @param None
   * @retval None
@@ -566,6 +607,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
+  if (htim->Instance == TIM17)
+  {
+	  // call imu
+	  if(ICM_GetAllRawData(&a,&t, &g, &m) != HAL_OK){
+		  printf("IMU Read Error\r\n");
+	  }
+  }
 
   /* USER CODE END Callback 1 */
 }

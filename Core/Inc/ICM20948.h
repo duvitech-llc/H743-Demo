@@ -66,7 +66,11 @@
 
 // Gyro/Accel Config (Bank 2)
 #define ICM20948_GYRO_CONFIG_1      (0x01)
-#define ICM20948_ACCEL_CONFIG       (0x14)
+// #define ICM20948_ACCEL_CONFIG       (0x14)
+#define ICM20948_CONFIG            	(0x1A)
+#define ICM20948_GYRO_CONFIG      	(0x1B)
+#define ICM20948_ACCEL_CONFIG     	(0x1C)
+#define ICM20948_ACCEL_CONFIG2    	(0x1D)
 
 #define ICM20948_EXT_SENS_DATA_00   (0x3B)
 #define ICM20948_EXT_SENS_DATA_01   (0x3C)
@@ -135,12 +139,38 @@ typedef struct {
     int16_t z;
 } ICM_Axis3D;
 
+enum Ascale
+{
+	AFS_2G = 0,
+	AFS_4G,
+	AFS_8G,
+	AFS_16G
+};
+
+enum Gscale {
+	GFS_250DPS = 0,
+	GFS_500DPS,
+	GFS_1000DPS,
+	GFS_2000DPS
+};
+
+enum Mscale {
+	MFS_14BITS = 0, // 0.6 mG per LSB
+	MFS_16BITS      // 0.15 mG per LSB
+};
+
+enum M_MODE {
+	M_8HZ = 0x02,  // 8 Hz update
+	M_100HZ = 0x06 // 100 Hz continuous magnetometer
+};
+
 uint8_t ICM_WHOAMI(void);
-uint8_t ICM_Init(void);
+uint8_t ICM_Init(float * accBias, float * gyroBias, float * magBias);
 float ICM_ReadTemperature(void);
 uint8_t ICM_ReadAccel(ICM_Axis3D *accel);
 uint8_t ICM_ReadGyro(ICM_Axis3D *gyro);
 uint8_t ICM_ReadMag(ICM_Axis3D *mag);
+uint8_t ICM_GetAllRawData(ICM_Axis3D *accel, float * pTemp, ICM_Axis3D *gyro, ICM_Axis3D *mag);
 void ICM_DumpRegisters(void);
 
 #endif /* ICM20948_H_ */

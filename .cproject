@@ -88,9 +88,9 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
+						<entry excluding="Class/CDC|Class/HID|Class/CDC/Src/usbd_cdc_if_template.c|Core/Src/usbd_desc_template.c|Core/Src/usbd_conf_template.c|Class/VIDEO|Class/Template|Class/Printer|Class/MTP|Class/MSC|Class/DFU|Class/CustomHID|Class/CDC_RNDIS|Class/CDC_ECM|Class/CCID|Class/BillBoard|Class/AUDIO" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="USB"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
-						<entry excluding="Class/CDC|Class/HID|Class/CDC/Src/usbd_cdc_if_template.c|Core/Src/usbd_desc_template.c|Core/Src/usbd_conf_template.c|Class/VIDEO|Class/Template|Class/Printer|Class/MTP|Class/MSC|Class/DFU|Class/CustomHID|Class/CDC_RNDIS|Class/CDC_ECM|Class/CCID|Class/BillBoard|Class/AUDIO" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="USB"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -176,9 +176,9 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
+						<entry excluding="Class/CDC|Class/HID|Class/CDC/Src/usbd_cdc_if_template.c|Core/Src/usbd_desc_template.c|Core/Src/usbd_conf_template.c|Class/VIDEO|Class/Template|Class/Printer|Class/MTP|Class/MSC|Class/DFU|Class/CustomHID|Class/CDC_RNDIS|Class/CDC_ECM|Class/CCID|Class/BillBoard|Class/AUDIO" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="USB"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
-						<entry excluding="Class/CDC|Class/HID|Class/CDC/Src/usbd_cdc_if_template.c|Core/Src/usbd_desc_template.c|Core/Src/usbd_conf_template.c|Class/VIDEO|Class/Template|Class/Printer|Class/MTP|Class/MSC|Class/DFU|Class/CustomHID|Class/CDC_RNDIS|Class/CDC_ECM|Class/CCID|Class/BillBoard|Class/AUDIO" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="USB"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

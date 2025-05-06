@@ -11,6 +11,16 @@
 #include <string.h>
 #include <stdio.h>
 
+static float g_bias[3] = {0.0f, 0.0f, 0.0f};
+static float a_bias[3] = {0.0f, 0.0f, 0.0f};
+static float m_bias[3] = {0.0f, 0.0f, 0.0f};
+
+static float acc_divider;
+static float gyro_divider;
+static float acc_res_scale;
+static float gyro_res_scale;
+static float mag_res_scale;
+
 static HAL_StatusTypeDef ICM_readBytes(uint8_t reg, uint8_t *pData, uint16_t size)
 {
 	HAL_StatusTypeDef result = HAL_OK;
@@ -48,6 +58,95 @@ static void ICM_SelectBank(uint8_t bank)
     HAL_I2C_Mem_Write(&ICM_I2C, ICM20948_ADDR << 1, ICM20948_REG_BANK_SEL, I2C_MEMADD_SIZE_8BIT, &val, 1, 100);
 }
 
+
+static uint8_t set_acc_scale(uint8_t scale){
+	uint8_t temp_scale;
+	HAL_StatusTypeDef status = ICM_WriteBytes(ICM20948_ACCEL_CONFIG, &scale, 1);
+	if (status != HAL_OK) return status;
+	HAL_Delay(1);
+	switch (scale){
+			case AFS_2G:
+					acc_divider=16384;
+			break;
+			case AFS_4G:
+					acc_divider=8192;
+			break;
+			case AFS_8G:
+					acc_divider=4096;
+			break;
+			case AFS_16G:
+					acc_divider=2048;
+			break;
+			default:
+				break;
+	}
+
+	status = ICM_readBytes(ICM20948_ACCEL_CONFIG, &temp_scale, 1);
+	if (status != HAL_OK) return status;
+	HAL_Delay(1);
+	switch (temp_scale){
+			case AFS_2G:
+					temp_scale=2;
+			break;
+			case AFS_4G:
+					temp_scale=4;
+			break;
+			case AFS_8G:
+					temp_scale=8;
+			break;
+			case AFS_16G:
+					temp_scale=16;
+			break;
+			default:
+				break;
+	}
+
+	return temp_scale;
+}
+
+static uint8_t set_gyro_scale(uint8_t scale){
+	unsigned int temp_scale;
+	uint8_t read_scale = 0;
+	HAL_StatusTypeDef status = ICM_WriteBytes(ICM20948_GYRO_CONFIG, &scale, 1);
+	if (status != HAL_OK) return status;
+	HAL_Delay(1);
+
+	switch (scale){
+			case GFS_250DPS:   gyro_divider = 131;  break;
+			case GFS_500DPS:   gyro_divider = 65.5; break;
+			case GFS_1000DPS:  gyro_divider = 32.8; break;
+			case GFS_2000DPS:  gyro_divider = 16.4; break;
+			default: break;
+	}
+
+	status =  ICM_readBytes(ICM20948_GYRO_CONFIG, &read_scale, 1);
+	if (status != HAL_OK) return status;
+	HAL_Delay(1);
+
+	switch (read_scale){
+			case GFS_250DPS:   temp_scale = 250;    break;
+			case GFS_500DPS:   temp_scale = 500;    break;
+			case GFS_1000DPS:  temp_scale = 1000;   break;
+			case GFS_2000DPS:  temp_scale = 2000;   break;
+			default: break;
+	}
+	return temp_scale;
+}
+
+static float set_mag_scale(uint8_t scale)
+{
+  float magScaleFactor = 0.0f;
+  switch (scale) {
+    case MFS_16BITS:
+      magScaleFactor = 10.0f * 4912.0f / 32752.0f; // Proper scale to return milliGauss
+      break;
+    default:
+      magScaleFactor = 10.0f * 4912.0f / 32752.0f; // Proper scale to return milliGauss
+      break;
+  }
+  return magScaleFactor;
+}
+
 uint8_t ICM_WHOAMI(void) {
 	uint8_t data = 0x01;
 	if(ICM_readBytes(ICM20948_WHO_AM_I_REG, &data, 1) != HAL_OK)
@@ -57,7 +156,7 @@ uint8_t ICM_WHOAMI(void) {
 	return data;
 }
 
-uint8_t ICM_Init(void)
+uint8_t ICM_Init(float * accBias, float * gyroBias, float * magBias)
 {
     HAL_StatusTypeDef status;
     uint8_t whoami = 0;
@@ -71,6 +170,45 @@ uint8_t ICM_Init(void)
         return HAL_ERROR;
     }
     printf("ICM20948 WHOAMI OK: 0x%02X\r\n", whoami);
+
+    if (accBias != (float *) NULL)
+    {
+      a_bias[0] = accBias[0];
+      a_bias[1] = accBias[1];
+      a_bias[2] = accBias[2];
+    }
+    else
+    {
+      a_bias[0] = 0.0;
+      a_bias[1] = 0.0;
+      a_bias[2] = 0.0;
+    }
+
+    if (gyroBias != (float *) NULL)
+    {
+      g_bias[0] = gyroBias[0];
+      g_bias[1] = gyroBias[1];
+      g_bias[2] = gyroBias[2];
+    }
+    else
+    {
+      g_bias[0] = 0.0;
+      g_bias[1] = 0.0;
+      g_bias[2] = 0.0;
+    }
+
+    if (magBias != (float *) NULL)
+    {
+      m_bias[0] = magBias[0];
+      m_bias[1] = magBias[1];
+      m_bias[2] = magBias[2];
+    }
+    else
+    {
+      m_bias[0] = 0.0;
+      m_bias[1] = 0.0;
+      m_bias[2] = 0.0;
+    }
 
     // 2. Reset device (set DEVICE_RESET bit in PWR_MGMT_1)
     uint8_t reset_cmd = 0x80;
@@ -228,6 +366,40 @@ uint8_t ICM_ReadMag(ICM_Axis3D *mag)
     mag->x = (int16_t)((mag_raw[1] << 8) | mag_raw[0]);
     mag->y = (int16_t)((mag_raw[3] << 8) | mag_raw[2]);
     mag->z = (int16_t)((mag_raw[5] << 8) | mag_raw[4]);
+
+    return HAL_OK;
+}
+
+uint8_t ICM_GetAllRawData(ICM_Axis3D *accel, float * pTemp, ICM_Axis3D *gyro, ICM_Axis3D *mag)
+{
+    uint8_t rawData[21];
+    int16_t temp_raw = 0;
+
+    ICM_SelectBank(ICM20948_USER_BANK_0);
+
+    if (ICM_readBytes(ICM20948_ACCEL_XOUT_H, rawData, 21) != HAL_OK)
+        return HAL_ERROR;
+
+    accel->x = (int16_t)((rawData[0] << 8) | rawData[1]);
+    accel->y = (int16_t)((rawData[2] << 8) | rawData[3]);
+    accel->z = (int16_t)((rawData[4] << 8) | rawData[5]);
+
+    gyro->x = (int16_t)((rawData[6] << 8) | rawData[7]);
+    gyro->y = (int16_t)((rawData[8] << 8) | rawData[9]);
+    gyro->z = (int16_t)((rawData[10] << 8) | rawData[11]);
+
+    temp_raw = ((int16_t)rawData[12] << 8) | rawData[13];
+    *pTemp = ((float)temp_raw / 333.87f) + 21.0f;  // per datasheet Page 14
+
+    mag->x = (int16_t)((rawData[15] << 8) | rawData[14]);
+    mag->y = (int16_t)((rawData[17] << 8) | rawData[16]);
+    mag->z = (int16_t)((rawData[19] << 8) | rawData[18]);
+
+    if ((rawData[20] & 0x8) != 0)
+    {
+      printf("ICM OVERFLOW.\r\n");
+      return HAL_ERROR;
+    }
 
     return HAL_OK;
 }
