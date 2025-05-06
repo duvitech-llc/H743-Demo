@@ -28,6 +28,7 @@
 // IMU Sensor Specific
 #define ICM20948_WHO_AM_I_REG 		(0x00)  // WHO_AM_I register address
 #define ICM20948_EXPECTED_ID 		(0xEA)   // Expected device ID
+#define AK09916_MAG_WHOAMI			(0x09)
 
 // Accelerometer Data Registers
 #define ICM20948_ACCEL_XOUT_H       (0x2D)
@@ -132,6 +133,8 @@
 #define ICM20948_I2C_SLV4_CTRL      (0x15)
 #define ICM20948_I2C_SLV4_DO        (0x16)
 #define ICM20948_I2C_SLV4_DI        (0x17)
+
+#define AK09916_REG_WIA2 			(0x01)
 
 typedef struct {
     int16_t x;

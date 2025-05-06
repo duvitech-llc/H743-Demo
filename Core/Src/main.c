@@ -72,7 +72,7 @@ ICM_Axis3D a;
 ICM_Axis3D m;
 ICM_Axis3D g;
 float t;
-
+char usb_buf[128];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -214,8 +214,7 @@ int main(void)
   //USBD_HISTO_SetTxBuffer(&hUsbDeviceFS, (uint8_t*)"HELLO\r\n", 7);
   //USBD_IMU_SetTxBuffer(&hUsbDeviceFS, (uint8_t*)"OLLEH\r\n", 7);
 
-  // HAL_TIM_Base_Start_IT(&htim17);
-  // printf("G: %d, %d, %d M: %d, %d, %d A: %d, %d, %d T: %d.%02d\r\n",g.x, g.y, g.z, m.x, m.y, m.z, a.x, a.y, a.z, (int)t, (((int)t - (int)t) * 100));
+  HAL_TIM_Base_Start_IT(&htim17);
   while (1)
   {
 
@@ -225,6 +224,8 @@ int main(void)
 	comms_host_check_received(); // check comms
 	HAL_Delay(100);
 	BSP_LED_Toggle(LED_BLUE);
+	//printf("{\"G\": [%d, %d, %d], \"M\": [%d, %d, %d], \"A\": [%d, %d, %d], \"T\": %d.%02d}\r\n",g.x, g.y, g.z, m.x, m.y, m.z, a.x, a.y, a.z, (int)t, (int)((t - (int)t) * 100.0f));
+
   }
   /* USER CODE END 3 */
 }
@@ -612,6 +613,17 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	  // call imu
 	  if(ICM_GetAllRawData(&a,&t, &g, &m) != HAL_OK){
 		  printf("IMU Read Error\r\n");
+	  }else{
+		  memset(usb_buf,0,128);
+		  int len = snprintf(
+		      usb_buf, sizeof(usb_buf),
+		      "{\"G\":[%d,%d,%d],\"M\":[%d,%d,%d],\"A\":[%d,%d,%d],\"T\":%d.%02d}\r\n",
+		      g.x, g.y, g.z,
+		      m.x, m.y, m.z,
+		      a.x, a.y, a.z,
+			  (int)t, (int)((t - (int)t) * 100.0f)
+		  );
+		  USBD_IMU_SetTxBuffer(&hUsbDeviceFS, (uint8_t *)usb_buf, len);
 	  }
   }
 

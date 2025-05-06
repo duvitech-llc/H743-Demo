@@ -25,6 +25,7 @@ extern USBD_ClassTypeDef USBD_HISTO;
 #define USBD_HISTO_CLASS &USBD_HISTO
 
 uint8_t  USBD_HISTO_SetTxBuffer(USBD_HandleTypeDef *pdev, uint8_t  *pbuff, uint16_t length);
+void USBD_HISTO_TxCpltCallback(uint8_t *Buf, uint32_t Len, uint8_t epnum);
 
 #ifdef __cplusplus
 }

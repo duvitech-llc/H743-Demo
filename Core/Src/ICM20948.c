@@ -52,10 +52,10 @@ static HAL_StatusTypeDef ICM_WriteBytes(uint8_t reg, uint8_t *pData, uint16_t si
 }
 
 
-static void ICM_SelectBank(uint8_t bank)
+static uint8_t ICM_SelectBank(uint8_t bank)
 {
     uint8_t val = bank;
-    HAL_I2C_Mem_Write(&ICM_I2C, ICM20948_ADDR << 1, ICM20948_REG_BANK_SEL, I2C_MEMADD_SIZE_8BIT, &val, 1, 100);
+    return HAL_I2C_Mem_Write(&ICM_I2C, ICM20948_ADDR << 1, ICM20948_REG_BANK_SEL, I2C_MEMADD_SIZE_8BIT, &val, 1, 100);
 }
 
 
@@ -147,6 +147,59 @@ static float set_mag_scale(uint8_t scale)
   return magScaleFactor;
 }
 
+static uint8_t ICM_MAG_write(uint8_t reg, uint8_t value)
+{
+	uint8_t ret = HAL_OK;
+    uint8_t data = 0x0C;
+
+    ICM_SelectBank(ICM20948_USER_BANK_3);
+    HAL_Delay(1);
+
+    ret = ICM_WriteBytes(ICM20948_I2C_SLV0_ADDR, &data, 1);
+    if(ret != HAL_OK) return ret;
+    HAL_Delay(1);
+
+    ret = ICM_WriteBytes(ICM20948_I2C_SLV0_REG, &reg, 1);
+    if(ret != HAL_OK) return ret;
+    HAL_Delay(1);
+
+    ret = ICM_WriteBytes(ICM20948_I2C_SLV0_DO, &value, 1);
+    if(ret != HAL_OK) return ret;
+    HAL_Delay(1);
+    return ret;
+}
+
+static uint8_t ICM_MAG_read(uint8_t reg, uint8_t* value)
+{
+	uint8_t ret = HAL_OK;
+    uint8_t data = 0x0C|0x80;
+
+    ICM_SelectBank(ICM20948_USER_BANK_3);
+    HAL_Delay(1);
+
+    ret = ICM_WriteBytes(ICM20948_I2C_SLV0_ADDR, &data, 1);
+    if(ret != HAL_OK) return ret;
+    HAL_Delay(1);
+
+    ret = ICM_WriteBytes(ICM20948_I2C_SLV0_REG, &reg, 1);
+    if(ret != HAL_OK) return ret;
+    HAL_Delay(1);
+
+    data = 0xff;
+    ret = ICM_WriteBytes(ICM20948_I2C_SLV0_DO, &data, 1);
+    if(ret != HAL_OK) return ret;
+    HAL_Delay(1);
+
+    ICM_SelectBank(ICM20948_USER_BANK_0);
+    HAL_Delay(1);
+
+    ret = ICM_readBytes(ICM20948_EXT_SENS_DATA_00, value, 1);
+    if(ret != HAL_OK) return ret;
+    HAL_Delay(1);
+
+    return ret;
+}
+
 uint8_t ICM_WHOAMI(void) {
 	uint8_t data = 0x01;
 	if(ICM_readBytes(ICM20948_WHO_AM_I_REG, &data, 1) != HAL_OK)
@@ -161,7 +214,7 @@ uint8_t ICM_Init(float * accBias, float * gyroBias, float * magBias)
     HAL_StatusTypeDef status;
     uint8_t whoami = 0;
 
-    // 1. Read WHO_AM_I
+    // Read WHO_AM_I
     ICM_SelectBank(ICM20948_USER_BANK_0);
     status = ICM_readBytes(ICM20948_WHO_AM_I_REG, &whoami, 1);
     if (status != HAL_OK || whoami != 0xEA)
@@ -171,6 +224,7 @@ uint8_t ICM_Init(float * accBias, float * gyroBias, float * magBias)
     }
     printf("ICM20948 WHOAMI OK: 0x%02X\r\n", whoami);
 
+    printf("Reset BIAS\r\n");
     if (accBias != (float *) NULL)
     {
       a_bias[0] = accBias[0];
@@ -210,50 +264,96 @@ uint8_t ICM_Init(float * accBias, float * gyroBias, float * magBias)
       m_bias[2] = 0.0;
     }
 
-    // 2. Reset device (set DEVICE_RESET bit in PWR_MGMT_1)
+    // Reset device (set DEVICE_RESET bit in PWR_MGMT_1)
+    printf("Reset Device\r\n");
     uint8_t reset_cmd = 0x80;
     status = ICM_WriteBytes(ICM20948_PWR_MGMT_1, &reset_cmd, 1);
-    HAL_Delay(100);  // Wait for reset
+    HAL_Delay(25);  // Wait for reset
     if (status != HAL_OK) return status;
 
-    // 3. Wake up and set clock source
+    // Wake up and set clock source
+    printf("Set Clock Source\r\n");
     uint8_t pwr_mgmt_1 = 0x01;  // sleep=0, clock=auto
     status = ICM_WriteBytes(ICM20948_PWR_MGMT_1, &pwr_mgmt_1, 1);
     if (status != HAL_OK) return status;
     HAL_Delay(10);
 
-    // 4. Enable all sensors (Accel, Gyro, Temp)
-    uint8_t pwr_mgmt_2 = 0x00; // All on
+    // Gyro OFF
+    printf("Set GYRO OFF\r\n");
+    uint8_t pwr_mgmt_2 = 0x38 | 0x07; // Gyro OFF
     status = ICM_WriteBytes(ICM20948_PWR_MGMT_2, &pwr_mgmt_2, 1);
     if (status != HAL_OK) return status;
+    HAL_Delay(20);
 
-    // 4.5 Disable Low Power Mode (LP_EN = 0)
+    // Enable all sensors (Accel, Gyro, Temp)
+    printf("Set ACC, GYRO, TEMP ON\r\n");
+    pwr_mgmt_2 = 0x00; // All on
+    status = ICM_WriteBytes(ICM20948_PWR_MGMT_2, &pwr_mgmt_2, 1);
+    if (status != HAL_OK) return status;
+    HAL_Delay(10);
+
+    // Disable Low Power Mode (LP_EN = 0)
+    printf("Disable Low Power Mode\r\n");
     uint8_t lp_config = 0x00;
     status = ICM_WriteBytes(ICM20948_LP_CONFIG, &lp_config, 1);  // LP_CONFIG register (bank 0)
     if (status != HAL_OK) return status;
+    HAL_Delay(1);
 
-    // 5. Enable I2C master interface (to use I2C slave interface)
-    uint8_t user_ctrl = 0x20;
-    status = ICM_WriteBytes(ICM20948_USER_CTRL, &user_ctrl, 1);
+    // Switch to USER BANK 0
+    ICM_SelectBank(ICM20948_USER_BANK_0);
+    HAL_Delay(1);
+
+    printf("Set PIN Config\r\n");
+    uint8_t user_pincgf = 0x30; // INT Pin / Bypass Enable Configuration
+    status = ICM_WriteBytes(ICM20948_INT_PIN_CFG, &user_pincgf, 1);
     if (status != HAL_OK) return status;
+    HAL_Delay(1);
+
+    //printf("Set I2C Master\r\n");
+    // Enable I2C master interface (to use I2C slave interface)
+    //uint8_t user_ctrl = 0x30; // I2C_MST_EN, I2C_IF_DIS
+    //status = ICM_WriteBytes(ICM20948_USER_CTRL, &user_ctrl, 1);
+    //if (status != HAL_OK) return status;
+    //HAL_Delay(1);
 
     // Switch to USER BANK 3
     ICM_SelectBank(ICM20948_USER_BANK_3);
+    HAL_Delay(1);
 
+    printf("Set I2C 400KHZ\r\n");
     // Set I2C Master Clock Speed (400kHz)
-    uint8_t i2c_mst_ctrl = 0x07;  // I2C_MST_CLK = 7 = 345.6 kHz (closest to 400kHz)
-    status = ICM_WriteBytes(0x01, &i2c_mst_ctrl, 1);
+    uint8_t i2c_mst_ctrl = 0x0D;  // [3:0]: 0x0d: 8Mhz clock divider = 20 (400khz)
+    status = ICM_WriteBytes(ICM20948_I2C_MST_CTRL, &i2c_mst_ctrl, 1);
     if (status != HAL_OK) return status;
+    HAL_Delay(1);
 
-    // 6. Select USER BANK 2 for gyro and accel config
+    printf("Set Enable I2C\r\n");
+    uint8_t i2c_mst_iic = 0x81;  // enable IIC	and EXT_SENS_DATA==1 Byte
+    status = ICM_WriteBytes(ICM20948_I2C_SLV0_CTRL, &i2c_mst_iic, 1);
+    if (status != HAL_OK) return status;
+    HAL_Delay(1);
+
+    // READ MAG ID
+    printf("Read MAG ID\r\n");
+    uint8_t mag_id = 0x00;
+    status = ICM_MAG_read(AK09916_REG_WIA2, &mag_id);
+    if (status != HAL_OK) return status;
+	if(mag_id != AK09916_MAG_WHOAMI)
+	{
+		printf("Failed!!!  ");
+	}
+	printf("MAG ID: 0x%02X\r\n", mag_id);
+
+    // Select USER BANK 2 for gyro and accel config
     ICM_SelectBank(ICM20948_USER_BANK_2);
+    HAL_Delay(1);
 
-    // 7. Configure gyroscope (±2000 dps, 17Hz BW)
+    // Configure gyroscope (±2000 dps, 17Hz BW)
     uint8_t gyro_config_1 = 0x06; // FCHOICE=0, DLPFCFG=6 (17Hz), FS_SEL=3 (±2000dps)
     status = ICM_WriteBytes(ICM20948_GYRO_CONFIG_1, &gyro_config_1, 1);
     if (status != HAL_OK) return status;
 
-    // 8. Configure accelerometer (±16g, 17Hz BW)
+    // Configure accelerometer (±16g, 17Hz BW)
     uint8_t accel_config = 0x06; // FCHOICE=1, DLPFCFG=6, FS_SEL=3 (±16g)
     status = ICM_WriteBytes(ICM20948_ACCEL_CONFIG, &accel_config, 1);
     if (status != HAL_OK) return status;
